@@ -7,7 +7,6 @@ public class Block : MonoBehaviour
     private bool _hasLanded = false;
     private bool _isDropped = false;
 
- 
     private int _floorLayer;
     private int _blockLayer;
 
@@ -16,7 +15,6 @@ public class Block : MonoBehaviour
         _rb = GetComponent<Rigidbody>();
         _rb.isKinematic = true;
 
-     
         _floorLayer = LayerMask.NameToLayer("Floor");
         _blockLayer = LayerMask.NameToLayer("Block");
     }
@@ -36,15 +34,16 @@ public class Block : MonoBehaviour
     private void OnCollisionEnter(Collision collision)
     {
         if (_hasLanded) return;
-
         int otherLayer = collision.gameObject.layer;
         if (otherLayer == _floorLayer || otherLayer == _blockLayer)
         {
             _hasLanded = true;
-            _rb.constraints = RigidbodyConstraints.FreezeRotation;
+          
+            _rb.constraints = RigidbodyConstraints.FreezeRotationY;
+            _rb.mass = 20f;
 
-           
-            GameEvents.TriggerBlockLanded(transform.position.y);
+            if (otherLayer == _blockLayer)
+                GameEvents.TriggerBlockLanded(transform.position.y);
         }
     }
 }

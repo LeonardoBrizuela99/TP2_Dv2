@@ -455,6 +455,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7091171249086741531, guid: 3552385e269c1634a9328ccd9bb6ce8a, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.5
+      objectReference: {fileID: 0}
     - target: {fileID: 7357126603758262447, guid: 3552385e269c1634a9328ccd9bb6ce8a, type: 3}
       propertyPath: m_Name
       value: Crane

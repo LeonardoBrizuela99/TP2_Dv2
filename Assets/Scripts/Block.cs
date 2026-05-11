@@ -4,12 +4,21 @@ using UnityEngine;
 public class Block : MonoBehaviour
 {
     private Rigidbody _rb;
+    private bool _hasLanded = false;
     private bool _isDropped = false;
+
+ 
+    private int _floorLayer;
+    private int _blockLayer;
 
     private void Awake()
     {
         _rb = GetComponent<Rigidbody>();
         _rb.isKinematic = true;
+
+     
+        _floorLayer = LayerMask.NameToLayer("Floor");
+        _blockLayer = LayerMask.NameToLayer("Block");
     }
 
     public void Drop()
@@ -17,15 +26,25 @@ public class Block : MonoBehaviour
         if (_isDropped) return;
         _isDropped = true;
 
-        // 1. Lo soltamos del padre
         transform.SetParent(null);
-
-        // 2. Activamos gravedad
         _rb.isKinematic = false;
 
-        // 3. LA CLAVE: Cortamos toda velocidad heredada
-        // Usamos linearVelocity para Unity 6
         _rb.linearVelocity = Vector3.zero;
         _rb.angularVelocity = Vector3.zero;
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (_hasLanded) return;
+
+        int otherLayer = collision.gameObject.layer;
+        if (otherLayer == _floorLayer || otherLayer == _blockLayer)
+        {
+            _hasLanded = true;
+            _rb.constraints = RigidbodyConstraints.FreezeRotation;
+
+           
+            GameEvents.TriggerBlockLanded(transform.position.y);
+        }
     }
 }

@@ -58,10 +58,17 @@ public class Block : MonoBehaviour
                 _rb.constraints = RigidbodyConstraints.FreezeRotationY;
                 _rb.mass = 20f;
             }
-          
+
 
             if (otherLayer == _blockLayer)
+            {
                 GameEvents.TriggerBlockLanded(transform.position.y);
+            }
+            else if (otherLayer == _floorLayer)
+            {
+                
+                Destroy(gameObject, 3f);
+            }
         }
     }
 }

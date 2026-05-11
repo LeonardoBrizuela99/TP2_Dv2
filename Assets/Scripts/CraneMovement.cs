@@ -46,4 +46,14 @@ public class CraneMovement : MonoBehaviour
         GameObject newBlockGO = Instantiate(blockPrefab, spawnPoint.position, Quaternion.identity, transform);
         _currentBlock = newBlockGO.GetComponent<Block>();
     }
+    private void DropBlock()
+    {
+        if (_currentBlock != null)
+        {
+            _currentBlock.transform.position = spawnPoint.position;
+            _currentBlock.Drop();
+            _currentBlock = null;
+            Invoke(nameof(SpawnNewBlock), 1.2f);
+        }
+    }
 }

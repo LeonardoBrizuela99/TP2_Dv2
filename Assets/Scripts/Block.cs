@@ -9,9 +9,10 @@ public class Block : MonoBehaviour
 
     private int _floorLayer;
     private int _blockLayer;
+    private int _baseLayer;
 
-  
-    [SerializeField] private float snapThreshold = 0.2f;
+    [Header("Ajustes de Juego")]
+    [SerializeField] private float snapThreshold = 0.25f;
 
     private void Awake()
     {
@@ -20,6 +21,19 @@ public class Block : MonoBehaviour
 
         _floorLayer = LayerMask.NameToLayer("Floor");
         _blockLayer = LayerMask.NameToLayer("Block");
+        _baseLayer = LayerMask.NameToLayer("Base");
+    }
+
+    private void OnEnable()
+    {
+        
+        GameEvents.OnPerfectDrop += StabilizeBlock;
+    }
+
+    private void OnDisable()
+    {
+       
+        GameEvents.OnPerfectDrop -= StabilizeBlock;
     }
 
     public void Drop()
@@ -39,36 +53,68 @@ public class Block : MonoBehaviour
         if (_hasLanded) return;
         int otherLayer = collision.gameObject.layer;
 
-        if (otherLayer == _floorLayer || otherLayer == _blockLayer)
+        if (otherLayer == _blockLayer || otherLayer == _baseLayer)
         {
             _hasLanded = true;
 
-          
-            float errorX = Mathf.Abs(transform.position.x - collision.transform.position.x);
+            _rb.linearVelocity = Vector3.zero;
+            _rb.angularVelocity = Vector3.zero;
+
+            Vector3 targetCenter = collision.collider.bounds.center;
+            float errorX = Mathf.Abs(transform.position.x - targetCenter.x);
 
             if (errorX < snapThreshold)
             {
               
-                transform.position = new Vector3(collision.transform.position.x, transform.position.y, transform.position.z);
+                transform.position = new Vector3(targetCenter.x, transform.position.y, transform.position.z);
                 _rb.constraints = RigidbodyConstraints.FreezeAll;
+
+              
+                GameEvents.TriggerPerfectDrop();
             }
             else
             {
-                
-                _rb.constraints = RigidbodyConstraints.FreezeRotationY;
-                _rb.mass = 20f;
+              
+                _rb.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ;
+                _rb.mass = 50f;
             }
-
 
             if (otherLayer == _blockLayer)
             {
                 GameEvents.TriggerBlockLanded(transform.position.y);
             }
-            else if (otherLayer == _floorLayer)
+        }
+        else if (otherLayer == _floorLayer)
+        {
+            _hasLanded = true;
+            Destroy(gameObject, 3f);
+        }
+    }
+
+    private void OnCollisionStay(Collision collision)
+    {
+        if (_hasLanded && _rb.constraints != RigidbodyConstraints.None)
+        {
+            if (collision.gameObject.layer == _blockLayer)
             {
-                
-                Destroy(gameObject, 3f);
+                Rigidbody otherRb = collision.gameObject.GetComponent<Rigidbody>();
+                if (otherRb != null && otherRb.constraints != RigidbodyConstraints.FreezeAll)
+                {
+                    _rb.constraints = RigidbodyConstraints.None;
+                }
             }
+        }
+    }
+
+  
+    private void StabilizeBlock()
+    {
+      
+        if (_hasLanded && _rb != null && _rb.constraints != RigidbodyConstraints.None)
+        {
+            _rb.constraints = RigidbodyConstraints.FreezeAll;
+            _rb.linearVelocity = Vector3.zero;
+            _rb.angularVelocity = Vector3.zero;
         }
     }
 }

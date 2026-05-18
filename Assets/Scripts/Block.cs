@@ -1,9 +1,10 @@
 using UnityEngine;
 
-[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(Rigidbody), typeof(BoxCollider))]
 public class Block : MonoBehaviour
 {
     private Rigidbody _rb;
+    private Collider _col;
     private bool _hasLanded = false;
     private bool _isDropped = false;
 
@@ -11,29 +12,18 @@ public class Block : MonoBehaviour
     private int _blockLayer;
     private int _baseLayer;
 
-    [Header("Ajustes de Juego")]
-    [SerializeField] private float snapThreshold = 0.25f;
+    [SerializeField] private float perfectOverlap = 85.0f; 
+    [SerializeField] private float goodOverlap = 40.0f;    
 
     private void Awake()
     {
         _rb = GetComponent<Rigidbody>();
+        _col = GetComponent<Collider>();
         _rb.isKinematic = true;
 
         _floorLayer = LayerMask.NameToLayer("Floor");
         _blockLayer = LayerMask.NameToLayer("Block");
         _baseLayer = LayerMask.NameToLayer("Base");
-    }
-
-    private void OnEnable()
-    {
-        
-        GameEvents.OnPerfectDrop += StabilizeBlock;
-    }
-
-    private void OnDisable()
-    {
-       
-        GameEvents.OnPerfectDrop -= StabilizeBlock;
     }
 
     public void Drop()
@@ -43,7 +33,6 @@ public class Block : MonoBehaviour
 
         transform.SetParent(null);
         _rb.isKinematic = false;
-
         _rb.linearVelocity = Vector3.zero;
         _rb.angularVelocity = Vector3.zero;
     }
@@ -57,64 +46,69 @@ public class Block : MonoBehaviour
         {
             _hasLanded = true;
 
-            _rb.linearVelocity = Vector3.zero;
-            _rb.angularVelocity = Vector3.zero;
-
-            Vector3 targetCenter = collision.collider.bounds.center;
-            float errorX = Mathf.Abs(transform.position.x - targetCenter.x);
-
-            if (errorX < snapThreshold)
+            if (otherLayer == _baseLayer)
             {
-              
-                transform.position = new Vector3(targetCenter.x, transform.position.y, transform.position.z);
                 _rb.constraints = RigidbodyConstraints.FreezeAll;
-
-              
-                GameEvents.TriggerPerfectDrop();
-            }
-            else
-            {
-              
-                _rb.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ;
-                _rb.mass = 50f;
+                GameEvents.TriggerBlockLanded(transform.position.y, 0f);
+                return;
             }
 
-            if (otherLayer == _blockLayer)
-            {
-                GameEvents.TriggerBlockLanded(transform.position.y);
-            }
+            EvaluatePlacement(collision);
         }
+     
         else if (otherLayer == _floorLayer)
         {
             _hasLanded = true;
-            Destroy(gameObject, 3f);
+
+          
+            GameEvents.TriggerBlockFailed();
+
+          
+            Destroy(gameObject);
         }
     }
 
-    private void OnCollisionStay(Collision collision)
+    private void EvaluatePlacement(Collision collision)
     {
-        if (_hasLanded && _rb.constraints != RigidbodyConstraints.None)
-        {
-            if (collision.gameObject.layer == _blockLayer)
-            {
-                Rigidbody otherRb = collision.gameObject.GetComponent<Rigidbody>();
-                if (otherRb != null && otherRb.constraints != RigidbodyConstraints.FreezeAll)
-                {
-                    _rb.constraints = RigidbodyConstraints.None;
-                }
-            }
-        }
-    }
+        float overlapPercentage = GetOverlapPercentage(collision);
 
-  
-    private void StabilizeBlock()
-    {
-      
-        if (_hasLanded && _rb != null && _rb.constraints != RigidbodyConstraints.None)
+        if (overlapPercentage > perfectOverlap)
         {
+          
+            Vector3 targetCenter = collision.collider.bounds.center;
+            transform.position = new Vector3(targetCenter.x, transform.position.y, transform.position.z);
             _rb.constraints = RigidbodyConstraints.FreezeAll;
-            _rb.linearVelocity = Vector3.zero;
-            _rb.angularVelocity = Vector3.zero;
+
+            GameEvents.TriggerPerfectDrop();
+            GameEvents.TriggerBlockLanded(transform.position.y, 0f);
         }
+        else if (overlapPercentage > goodOverlap)
+        {
+          
+            _rb.constraints = RigidbodyConstraints.FreezeAll;
+
+            float errorX = Mathf.Abs(transform.position.x - collision.collider.bounds.center.x);
+            GameEvents.TriggerBlockLanded(transform.position.y, errorX);
+        }
+        else
+        {
+            _rb.constraints = RigidbodyConstraints.FreezeRotationY;
+            _rb.mass = 20f;
+        }
+    }
+
+    private float GetOverlapPercentage(Collision collision)
+    {
+        float thisLeftEdge = _col.bounds.min.x;
+        float thisRightEdge = _col.bounds.max.x;
+        float otherLeftEdge = collision.collider.bounds.min.x;
+        float otherRightEdge = collision.collider.bounds.max.x;
+
+        float overlapMin = Mathf.Max(thisLeftEdge, otherLeftEdge);
+        float overlapMax = Mathf.Min(thisRightEdge, otherRightEdge);
+        float overlap = Mathf.Max(0.0f, overlapMax - overlapMin);
+
+        float towerWidth = _col.bounds.size.x;
+        return Mathf.Clamp((overlap / towerWidth) * 100.0f, 0.0f, 100.0f);
     }
 }

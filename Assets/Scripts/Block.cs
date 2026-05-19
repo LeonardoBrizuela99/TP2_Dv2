@@ -72,6 +72,7 @@ public class Block : MonoBehaviour
         else if (otherLayer == _floorLayer)
         {
             _hasLanded = true;
+            GetComponent<AudioSource>()?.Play();
             GameEvents.TriggerBlockFailed();
             Destroy(gameObject);
         }

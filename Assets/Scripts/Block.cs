@@ -46,6 +46,15 @@ public class Block : MonoBehaviour
         {
             _hasLanded = true;
 
+            // --- LA REGLA CLAVE PARA EVITAR BLOQUES A LA PAR ---
+            // Si nos apoyamos sobre otro bloque de la torre...
+            if (otherLayer == _blockLayer)
+            {
+                // Obligamos al bloque de abajo a volverse "Floor" (Suelo Letal).
+                // Así, nadie más podrá colgarse de sus costados o pestañas vacías.
+                collision.gameObject.layer = _floorLayer;
+            }
+
             if (otherLayer == _baseLayer)
             {
                 _rb.constraints = RigidbodyConstraints.FreezeAll;
@@ -62,6 +71,7 @@ public class Block : MonoBehaviour
             Destroy(gameObject);
         }
     }
+
 
     private void EvaluatePlacement(Collision collision)
     {

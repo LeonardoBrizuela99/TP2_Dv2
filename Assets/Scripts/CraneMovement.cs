@@ -6,7 +6,7 @@ public class CraneMovement : MonoBehaviour
     [SerializeField] private float speed = 3.5f;
     [SerializeField] private float range = 5.0f;
 
-  
+   
     [SerializeField] private float verticalOffset = 8f;
     [SerializeField] private float lerpSpeed = 2.5f;
     [SerializeField] private float safeMargin = 3.0f;
@@ -29,13 +29,21 @@ public class CraneMovement : MonoBehaviour
 
     private void Update()
     {
+        
+        GameManager gm = FindObjectOfType<GameManager>();
+        if (gm != null && gm.IsGameOver)
+        {
+            return;
+        }
+
         float x = Mathf.PingPong(Time.time * speed, range * 2) - range;
 
-     
+      
         float newY = Mathf.Lerp(transform.position.y, _targetHeight, Time.deltaTime * lerpSpeed);
 
         transform.position = new Vector3(x, newY, transform.position.z);
 
+        
         if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
         {
             DropBlock();
@@ -67,7 +75,6 @@ public class CraneMovement : MonoBehaviour
     {
         if (blockPrefabs == null || blockPrefabs.Length == 0) return;
 
-       
         int randomIndex = Random.Range(0, blockPrefabs.Length);
         GameObject selectedPrefab = blockPrefabs[randomIndex];
 

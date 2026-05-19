@@ -1,14 +1,17 @@
 using UnityEngine;
-using UnityEngine.SceneManagement; // Obligatorio para recargar escenas
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
+   
+    
+    [SerializeField] private GameObject platformBase;
+
     private int _score = 0;
     private int _perfectStreak = 0;
     private int _towersPlaced = 0;
     private bool _isGameOver = false;
 
-    
     public bool IsGameOver => _isGameOver;
 
     private void OnEnable()
@@ -20,7 +23,6 @@ public class GameManager : MonoBehaviour
 
     private void OnDisable()
     {
-       
         GameEvents.OnBlockLanded -= HandleNormalLanding;
         GameEvents.OnPerfectDrop -= HandlePerfectLanding;
         GameEvents.OnBlockFailed -= HandleGameOver;
@@ -29,6 +31,12 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         ResetStats();
+
+      
+        if (platformBase != null)
+        {
+            platformBase.layer = LayerMask.NameToLayer("Base");
+        }
     }
 
     private void HandleNormalLanding(float height, float errorX)
@@ -39,7 +47,13 @@ public class GameManager : MonoBehaviour
         _perfectStreak = 0;
         _towersPlaced++;
 
-     
+       
+        if (_towersPlaced == 1 && platformBase != null)
+        {
+            platformBase.layer = LayerMask.NameToLayer("Floor");
+            Debug.Log("GameManager: Plataforma base clausurada. Ahora es zona letal.");
+        }
+
         GameEvents.TriggerScoreChanged(_score);
         GameEvents.TriggerPerfectStreakChanged(_perfectStreak);
         GameEvents.TriggerTowersPlacedChanged(_towersPlaced);
@@ -49,7 +63,6 @@ public class GameManager : MonoBehaviour
     {
         if (_isGameOver) return;
 
-      
         _score += 150;
         _perfectStreak++;
 
@@ -65,14 +78,12 @@ public class GameManager : MonoBehaviour
             GameEvents.TriggerGameOver();
             Debug.Log("GAME OVER: El bloque cayó al vacío.");
 
-            
             Invoke(nameof(ReloadCurrentScene), 2f);
         }
     }
 
     private void ReloadCurrentScene()
     {
-        
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 

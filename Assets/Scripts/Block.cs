@@ -7,11 +7,13 @@ public class Block : MonoBehaviour
     private Collider _col;
     private bool _hasLanded = false;
     private bool _isDropped = false;
+    private bool _hasFailed = false; 
 
     private int _floorLayer;
     private int _blockLayer;
     private int _baseLayer;
 
+    
     [SerializeField] private float perfectOverlap = 85.0f;
     [SerializeField] private float goodOverlap = 40.0f;
 
@@ -39,21 +41,24 @@ public class Block : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (_hasLanded) return;
         int otherLayer = collision.gameObject.layer;
+
+        
+        if (_hasFailed)
+        {
+            if (otherLayer == _blockLayer || otherLayer == _baseLayer || otherLayer == _floorLayer)
+            {
+                GameEvents.TriggerBlockFailed();
+                Destroy(gameObject);
+                return;
+            }
+        }
+
+        if (_hasLanded) return;
 
         if (otherLayer == _blockLayer || otherLayer == _baseLayer)
         {
             _hasLanded = true;
-
-            // --- LA REGLA CLAVE PARA EVITAR BLOQUES A LA PAR ---
-            // Si nos apoyamos sobre otro bloque de la torre...
-            if (otherLayer == _blockLayer)
-            {
-                // Obligamos al bloque de abajo a volverse "Floor" (Suelo Letal).
-                // Así, nadie más podrá colgarse de sus costados o pestañas vacías.
-                collision.gameObject.layer = _floorLayer;
-            }
 
             if (otherLayer == _baseLayer)
             {
@@ -72,13 +77,13 @@ public class Block : MonoBehaviour
         }
     }
 
-
     private void EvaluatePlacement(Collision collision)
     {
         float overlapPercentage = GetOverlapPercentage(collision);
 
         if (overlapPercentage > perfectOverlap)
         {
+            
             Vector3 targetCenter = collision.collider.bounds.center;
             transform.position = new Vector3(targetCenter.x, transform.position.y, transform.position.z);
             _rb.constraints = RigidbodyConstraints.FreezeAll;
@@ -88,7 +93,7 @@ public class Block : MonoBehaviour
         }
         else if (overlapPercentage > goodOverlap)
         {
-         
+           
             _rb.constraints = RigidbodyConstraints.FreezeAll;
 
             float errorX = Mathf.Abs(transform.position.x - collision.collider.bounds.center.x);
@@ -96,14 +101,23 @@ public class Block : MonoBehaviour
         }
         else
         {
-          
+         
             _rb.isKinematic = false;
             _rb.constraints = RigidbodyConstraints.None;
             _rb.mass = 20f;
 
-        
+           
+            _hasFailed = true;
+
+           
+            GameEvents.TriggerBlockFailed();
+
+          
             float pushDirection = Mathf.Sign(transform.position.x - collision.collider.bounds.center.x);
             _rb.linearVelocity = new Vector3(pushDirection * 2f, _rb.linearVelocity.y, _rb.linearVelocity.z);
+
+           
+            Destroy(gameObject, 2f);
         }
     }
 

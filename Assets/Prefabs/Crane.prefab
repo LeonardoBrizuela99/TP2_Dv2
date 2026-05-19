@@ -297,5 +297,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CraneMovement
   speed: 3.5
   range: 5
-  blockPrefab: {fileID: 6880129988454368073, guid: 33704547211a52c49b22a1cdaca944b1, type: 3}
+  verticalOffset: 8
+  lerpSpeed: 2.5
+  safeMargin: 3
+  blockPrefabs:
+  - {fileID: 0}
   spawnPoint: {fileID: 7091171249086741531}

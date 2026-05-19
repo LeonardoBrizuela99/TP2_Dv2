@@ -12,7 +12,6 @@ public class Block : MonoBehaviour
     private int _blockLayer;
     private int _baseLayer;
 
-    [Header("Ajustes de Encastre (Porcentaje)")]
     [SerializeField] private float perfectOverlap = 85.0f;
     [SerializeField] private float goodOverlap = 40.0f;
 
@@ -70,7 +69,6 @@ public class Block : MonoBehaviour
 
         if (overlapPercentage > perfectOverlap)
         {
-            // ENCASTRE PERFECTO: Se centra exacto con el de abajo y se congela
             Vector3 targetCenter = collision.collider.bounds.center;
             transform.position = new Vector3(targetCenter.x, transform.position.y, transform.position.z);
             _rb.constraints = RigidbodyConstraints.FreezeAll;
@@ -80,7 +78,7 @@ public class Block : MonoBehaviour
         }
         else if (overlapPercentage > goodOverlap)
         {
-            // TIRO BUENO: Se queda anclado firme en su lugar actual (Evita deslizamientos)
+         
             _rb.constraints = RigidbodyConstraints.FreezeAll;
 
             float errorX = Mathf.Abs(transform.position.x - collision.collider.bounds.center.x);
@@ -88,13 +86,12 @@ public class Block : MonoBehaviour
         }
         else
         {
-            // CAYÓ MAL (Menos del porcentaje aceptable): 
-            // Apagamos isKinematic y liberamos restricciones para que la gravedad lo tire de verdad
+          
             _rb.isKinematic = false;
             _rb.constraints = RigidbodyConstraints.None;
             _rb.mass = 20f;
 
-            // Le damos un pequeño impulso lateral hacia donde sobresale para asegurar el derrumbe
+        
             float pushDirection = Mathf.Sign(transform.position.x - collision.collider.bounds.center.x);
             _rb.linearVelocity = new Vector3(pushDirection * 2f, _rb.linearVelocity.y, _rb.linearVelocity.z);
         }

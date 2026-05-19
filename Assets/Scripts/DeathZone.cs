@@ -5,7 +5,6 @@ public class DeathZone : MonoBehaviour
     private int _blockLayer;
     private bool _hasMoved = false;
 
-    [Header("Ajustes de Movimiento")]
     [SerializeField] private float targetHeightY = 0.2f;      
     [SerializeField] private float safetyDistanceX = 0.8f;    
 

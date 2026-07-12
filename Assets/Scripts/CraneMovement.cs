@@ -2,25 +2,24 @@ using UnityEngine;
 
 public class CraneMovement : MonoBehaviour
 {
-   
     [SerializeField] private float speed = 3.5f;
     [SerializeField] private float range = 5.0f;
 
-   
     [SerializeField] private float verticalOffset = 8f;
     [SerializeField] private float lerpSpeed = 2.5f;
     [SerializeField] private float safeMargin = 3.0f;
 
-   
     [SerializeField] private GameObject[] blockPrefabs;
     [SerializeField] private Transform spawnPoint;
 
     private Block _currentBlock;
     private float _targetHeight;
+    private GameManager _gameManager;
 
     private void Start()
     {
         _targetHeight = transform.position.y;
+        _gameManager = FindObjectOfType<GameManager>();
         SpawnNewBlock();
     }
 
@@ -29,21 +28,16 @@ public class CraneMovement : MonoBehaviour
 
     private void Update()
     {
-        
-        GameManager gm = FindObjectOfType<GameManager>();
-        if (gm != null && gm.IsGameOver)
+        if (_gameManager != null && _gameManager.IsGameOver)
         {
             return;
         }
 
         float x = Mathf.PingPong(Time.time * speed, range * 2) - range;
-
-      
         float newY = Mathf.Lerp(transform.position.y, _targetHeight, Time.deltaTime * lerpSpeed);
 
         transform.position = new Vector3(x, newY, transform.position.z);
 
-        
         if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
         {
             DropBlock();

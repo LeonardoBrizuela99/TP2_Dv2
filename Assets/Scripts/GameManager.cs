@@ -3,14 +3,13 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
-   
-    
     [SerializeField] private GameObject platformBase;
 
     private int _score = 0;
     private int _perfectStreak = 0;
     private int _towersPlaced = 0;
     private bool _isGameOver = false;
+    private bool _wasPerfectInFrame = false;
 
     public bool IsGameOver => _isGameOver;
 
@@ -32,11 +31,15 @@ public class GameManager : MonoBehaviour
     {
         ResetStats();
 
-      
         if (platformBase != null)
         {
             platformBase.layer = LayerMask.NameToLayer("Base");
         }
+    }
+
+    private void LateUpdate()
+    {
+        _wasPerfectInFrame = false;
     }
 
     private void HandleNormalLanding(float height, float errorX)
@@ -44,14 +47,16 @@ public class GameManager : MonoBehaviour
         if (_isGameOver) return;
 
         _score += 100;
-        _perfectStreak = 0;
         _towersPlaced++;
 
-       
+        if (!_wasPerfectInFrame)
+        {
+            _perfectStreak = 0;
+        }
+
         if (_towersPlaced == 1 && platformBase != null)
         {
             platformBase.layer = LayerMask.NameToLayer("Floor");
-            Debug.Log("GameManager: Plataforma base clausurada. Ahora es zona letal.");
         }
 
         GameEvents.TriggerScoreChanged(_score);
@@ -63,6 +68,7 @@ public class GameManager : MonoBehaviour
     {
         if (_isGameOver) return;
 
+        _wasPerfectInFrame = true;
         _score += 150;
         _perfectStreak++;
 
@@ -76,8 +82,6 @@ public class GameManager : MonoBehaviour
         {
             _isGameOver = true;
             GameEvents.TriggerGameOver();
-            Debug.Log("GAME OVER: El bloque cayó al vacío.");
-
             Invoke(nameof(ReloadCurrentScene), 2f);
         }
     }
@@ -93,5 +97,6 @@ public class GameManager : MonoBehaviour
         _perfectStreak = 0;
         _towersPlaced = 0;
         _isGameOver = false;
+        _wasPerfectInFrame = false;
     }
 }

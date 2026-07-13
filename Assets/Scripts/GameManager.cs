@@ -48,11 +48,6 @@ public class GameManager : MonoBehaviour
         _score += 100;
         _towersPlaced++;
 
-        if (!_wasPerfectInFrame)
-        {
-            _perfectStreak = 0;
-        }
-
         if (_towersPlaced == 1 && platformBase != null)
         {
             platformBase.layer = LayerMask.NameToLayer("Floor");

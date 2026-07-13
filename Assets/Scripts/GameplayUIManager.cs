@@ -40,12 +40,12 @@ public class GameplayUIManager : MonoBehaviour
 
     private void UpdateScoreUI(int score)
     {
-        scoreText.text = "Puntaje: " + score;
+        scoreText.text = "Score: " + score;
     }
 
     private void UpdateStrikesUI(int streak)
     {
-        strikesText.text = "Strikes: " + streak;
+        strikesText.text = "Perfect: " + streak;
     }
 
     private void UpdateHeightUI(float landedHeight, float errorX)
@@ -53,7 +53,7 @@ public class GameplayUIManager : MonoBehaviour
         if (landedHeight > _maxHeight)
         {
             _maxHeight = landedHeight;
-            heightText.text = "Altura: " + _maxHeight.ToString("F1") + "m";
+            heightText.text = "Height: " + _maxHeight.ToString("F1") + "m";
         }
     }
 

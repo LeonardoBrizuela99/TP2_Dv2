@@ -16,6 +16,10 @@ public class Block : MonoBehaviour
     [SerializeField] private float perfectOverlap = 85.0f;
     [SerializeField] private float goodOverlap = 40.0f;
 
+    [Header("Efectos de Sonido")]
+    [SerializeField] private AudioSource normalHitSound;
+    [SerializeField] private AudioSource perfectStrikeSound;
+
     private void Awake()
     {
         _rb = GetComponent<Rigidbody>();
@@ -57,10 +61,10 @@ public class Block : MonoBehaviour
         if (otherLayer == _blockLayer || otherLayer == _baseLayer)
         {
             _hasLanded = true;
-            GetComponent<AudioSource>()?.Play();
 
             if (otherLayer == _baseLayer)
             {
+                if (normalHitSound != null) normalHitSound.Play();
                 _rb.constraints = RigidbodyConstraints.FreezeAll;
                 GameEvents.TriggerBlockLanded(transform.position.y, 0f);
                 return;
@@ -71,7 +75,7 @@ public class Block : MonoBehaviour
         else if (otherLayer == _floorLayer)
         {
             _hasLanded = true;
-            GetComponent<AudioSource>()?.Play();
+            if (normalHitSound != null) normalHitSound.Play();
             GameEvents.TriggerBlockFailed();
             Destroy(gameObject);
         }
@@ -83,6 +87,8 @@ public class Block : MonoBehaviour
 
         if (overlapPercentage > perfectOverlap)
         {
+            if (perfectStrikeSound != null) perfectStrikeSound.Play();
+
             Vector3 targetCenter = collision.collider.bounds.center;
             transform.position = new Vector3(targetCenter.x, transform.position.y, transform.position.z);
             _rb.constraints = RigidbodyConstraints.FreezeAll;
@@ -92,6 +98,7 @@ public class Block : MonoBehaviour
         }
         else if (overlapPercentage > goodOverlap)
         {
+            if (normalHitSound != null) normalHitSound.Play();
             _rb.constraints = RigidbodyConstraints.FreezeAll;
 
             float errorX = Mathf.Abs(transform.position.x - collision.collider.bounds.center.x);

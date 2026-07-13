@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -82,13 +81,8 @@ public class GameManager : MonoBehaviour
         {
             _isGameOver = true;
             GameEvents.TriggerGameOver();
-            Invoke(nameof(ReloadCurrentScene), 2f);
+            Debug.Log("GAME OVER");
         }
-    }
-
-    private void ReloadCurrentScene()
-    {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     private void ResetStats()

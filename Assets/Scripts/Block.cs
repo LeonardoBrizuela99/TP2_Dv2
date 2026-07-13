@@ -103,12 +103,11 @@ public class Block : MonoBehaviour
             _rb.constraints = RigidbodyConstraints.None;
             _rb.mass = 20f;
             _hasFailed = true;
-            GameEvents.TriggerBlockFailed();
 
             float pushDirection = Mathf.Sign(transform.position.x - collision.collider.bounds.center.x);
             _rb.linearVelocity = new Vector3(pushDirection * 2f, _rb.linearVelocity.y, _rb.linearVelocity.z);
 
-            Destroy(gameObject, 2f);
+            Destroy(gameObject, 3f);
         }
     }
 
